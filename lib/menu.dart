@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'widgets/left_drawer.dart';
+import 'project_form.dart';
 
 class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
@@ -7,10 +9,11 @@ class MyHomePage extends StatelessWidget {
   final String nama = "Veronika Chebotareva";
   final String kelas = "PBP A";
 
+  // Кнопки теперь имеют логику (onTap обрабатывается в ItemCard)
   final List<ItemHomepage> items = [
-    ItemHomepage("View Projects", Icons.folder, Colors.blue),
-    ItemHomepage("Add Project", Icons.add_circle, Colors.green),
-    ItemHomepage("Logout", Icons.logout, Colors.red),
+    ItemHomepage("View Projects", Icons.folder, const Color.fromARGB(255, 220, 144, 57)),
+    ItemHomepage("Add Project", Icons.add_circle, const Color(0xFF00674F)),
+    ItemHomepage("Logout", Icons.logout, const Color(0xFF800000)),
   ];
 
   @override
@@ -24,8 +27,10 @@ class MyHomePage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: const Color(0xFF00674F),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
+      drawer: const LeftDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -118,11 +123,27 @@ class ItemCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: () {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              SnackBar(content: Text("You pressed the ${item.name} button!")),
+          // Логика перехода для разных кнопок
+          if (item.name == "Add Project") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ProjectFormPage()),
             );
+          } else if (item.name == "View Projects") {
+            // Пока просто заглушка, так как экрана проектов еще нет
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                const SnackBar(content: Text("View Projects button pressed!")),
+              );
+          } else {
+            // Для Logout и других кнопок показываем SnackBar
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(
+                SnackBar(content: Text("You pressed the ${item.name} button!")),
+              );
+          }
         },
         child: Container(
           padding: const EdgeInsets.all(8),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'widgets/left_drawer.dart';
-import 'project_form.dart';
+import 'package:myportfolio_mobile/widgets/left_drawer.dart';
+import 'package:myportfolio_mobile/screens/project_form.dart';
+import 'package:myportfolio_mobile/screens/experience_form.dart';
 
 class MyHomePage extends StatelessWidget {
   MyHomePage({super.key});
@@ -9,10 +10,10 @@ class MyHomePage extends StatelessWidget {
   final String nama = "Veronika Chebotareva";
   final String kelas = "PBP A";
 
-  // Кнопки теперь имеют логику (onTap обрабатывается в ItemCard)
   final List<ItemHomepage> items = [
-    ItemHomepage("View Projects", Icons.folder, const Color.fromARGB(255, 220, 144, 57)),
+    ItemHomepage("View Projects", Icons.folder, const Color(0xFFFFA000)),
     ItemHomepage("Add Project", Icons.add_circle, const Color(0xFF00674F)),
+    ItemHomepage("Add Experience", Icons.work, const Color(0xFF00674F)),
     ItemHomepage("Logout", Icons.logout, const Color(0xFF800000)),
   ];
 
@@ -123,21 +124,17 @@ class ItemCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: () {
-          // Логика перехода для разных кнопок
           if (item.name == "Add Project") {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const ProjectFormPage()),
             );
-          } else if (item.name == "View Projects") {
-            // Пока просто заглушка, так как экрана проектов еще нет
-            ScaffoldMessenger.of(context)
-              ..hideCurrentSnackBar()
-              ..showSnackBar(
-                const SnackBar(content: Text("View Projects button pressed!")),
-              );
+          } else if (item.name == "Add Experience") {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ExperienceFormPage()),
+            );
           } else {
-            // Для Logout и других кнопок показываем SnackBar
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(

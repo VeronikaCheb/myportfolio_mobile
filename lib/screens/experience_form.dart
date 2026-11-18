@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
-import 'widgets/left_drawer.dart';
+import '../widgets/left_drawer.dart';
 
-class ProjectFormPage extends StatefulWidget {
-  const ProjectFormPage({super.key});
+class ExperienceFormPage extends StatefulWidget {
+  const ExperienceFormPage({super.key});
 
   @override
-  State<ProjectFormPage> createState() => _ProjectFormPageState();
+  State<ExperienceFormPage> createState() => _ExperienceFormPageState();
 }
 
-class _ProjectFormPageState extends State<ProjectFormPage> {
+class _ExperienceFormPageState extends State<ExperienceFormPage> {
   final _formKey = GlobalKey<FormState>();
-  String _projectName = "";
+  String _title = "";
   String _description = "";
-  String _category = "Web Development";
-  String _technologies = "";
-  String _projectLink = "";
+  String _category = "Volunteer";
   
   final List<String> _categories = [
-    'Web Development',
-    'Mobile Development',
-    'Machine Learning',
-    'Data Science',
-    'Other',
+    'Internship',
+    'Research',
+    'Volunteer',
+    'Part-Time',
+    'Full-Time',
+    'Freelance',
+    'Organizer',
   ];
 
   @override
@@ -29,7 +29,7 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Center(
-          child: Text('Add Project Form'),
+          child: Text('Add Experience Form'),
         ),
         backgroundColor: const Color(0xFF00674F),
         foregroundColor: Colors.white,
@@ -42,39 +42,36 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // === Project Name ===
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
                   decoration: InputDecoration(
-                    hintText: "Project Name",
-                    labelText: "Project Name",
+                    hintText: "Role / Position",
+                    labelText: "Role / Position",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                   ),
                   onChanged: (String? value) {
                     setState(() {
-                      _projectName = value!;
+                      _title = value!;
                     });
                   },
                   validator: (String? value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "Enter a project name.";
+                      return "Enter a role or position.";
                     }
                     return null;
                   },
                 ),
               ),
-              
-              // === Description ===
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: TextFormField(
                   maxLines: 5,
                   decoration: InputDecoration(
-                    hintText: "Project Description",
-                    labelText: "Project Description",
+                    hintText: "What did you do?",
+                    labelText: "Description",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5.0),
                     ),
@@ -86,19 +83,17 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                   },
                   validator: (String? value) {
                     if (value == null || value.trim().isEmpty) {
-                      return "Enter a project description.";
+                      return "Enter a description.";
                     }
                     return null;
                   },
                 ),
               ),
-              
-              // === Category ===
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: DropdownButtonFormField<String>(
                   decoration: InputDecoration(
-                    labelText: "Project Category",
+                    labelText: "Category",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(5.0),
                     ),
@@ -117,46 +112,6 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                   },
                 ),
               ),
-              
-              // === Technologies ===
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: "Example: Flutter, Django, Figma",
-                    labelText: "Technologies Used",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _technologies = value!;
-                    });
-                  },
-                ),
-              ),
-              
-              // === Project Link ===
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: "Project URL (optional)",
-                    labelText: "Project Link",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _projectLink = value!;
-                    });
-                  },
-                ),
-              ),
-              
-              // === Save Button ===
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Padding(
@@ -171,7 +126,18 @@ class _ProjectFormPageState extends State<ProjectFormPage> {
                           context: context,
                           builder: (context) {
                             return AlertDialog(
-                              title: const Text('Project added successfully!'),
+                              title: const Text('Experience Added!'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Title: $_title'),
+                                  const SizedBox(height: 8),
+                                  Text('Category: $_category'),
+                                  const SizedBox(height: 8),
+                                  Text('Description: $_description'),
+                                ],
+                              ),
                               actions: [
                                 TextButton(
                                   child: const Text('OK'),

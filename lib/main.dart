@@ -1,25 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:myportfolio_mobile/screens/menu.dart';
+import 'package:myportfolio_mobile/services/api_client.dart';
+import 'package:myportfolio_mobile/services/auth_state.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp(apiClient: ApiClient()));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({required this.apiClient, super.key});
+  final ApiClient apiClient;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MyPortfolio Mobile',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF00674F),
-          secondary: const Color(0xFF800000),
+    return MultiProvider(
+      providers: [
+        Provider.value(value: apiClient),
+        ChangeNotifierProvider(create: (_) => AuthState(apiClient)),
+      ],
+      child: MaterialApp(
+        title: 'MyPortfolio Mobile',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF00674F)),
+          useMaterial3: true,
         ),
-        useMaterial3: true,
+        home: MyHomePage(),
       ),
-      home: MyHomePage(),
     );
   }
 }

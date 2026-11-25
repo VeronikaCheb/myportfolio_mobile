@@ -1,19 +1,30 @@
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../models/experience.dart';
+import '../services/api_client.dart';
+import '../services/auth_state.dart';
+import '../widgets/auth_guard.dart';
 import '../widgets/left_drawer.dart';
 
 class ExperienceFormPage extends StatefulWidget {
   const ExperienceFormPage({super.key});
 
   @override
-  State<ExperienceFormPage> createState() => _ExperienceFormPageState();
+  State<ExperienceFormPage> createState() =>
+      _ExperienceFormPageState();
 }
 
-class _ExperienceFormPageState extends State<ExperienceFormPage> {
+class _ExperienceFormPageState
+    extends State<ExperienceFormPage> {
   final _formKey = GlobalKey<FormState>();
-  String _title = "";
-  String _description = "";
-  String _category = "Volunteer";
-  
+
+  String _title = '';
+  String _description = '';
+  String _category = 'Volunteer';
+  bool _isSubmitting = false;
+
   final List<String> _categories = [
     'Internship',
     'Research',
@@ -24,140 +35,155 @@ class _ExperienceFormPageState extends State<ExperienceFormPage> {
     'Organizer',
   ];
 
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (!await ensureLoggedIn(context)) return;
+    if (!mounted) return;
+
+    final auth = context.read<AuthState>();
+    final api = context.read<ApiClient>();
+    final token = auth.token;
+
+    if (token == null) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
+      final experience = Experience(
+        title: _title.trim(),
+        description: _description.trim(),
+        category: _category.toLowerCase(),
+      );
+
+      await api.createExperience(
+        experience,
+        token: token,
+      );
+
+      if (!mounted) return;
+
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Experience Added!'),
+          content: const Text(
+            'Experience successfully saved to Django.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+
+      if (!mounted) return;
+
+      _formKey.currentState!.reset();
+
+      setState(() {
+        _title = '';
+        _description = '';
+        _category = 'Volunteer';
+      });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+
+      if (e.statusCode == 401) {
+        await auth.logout();
+
+        if (!mounted) return;
+        await ensureLoggedIn(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to save: ${e.statusCode} ${e.message}',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Connection error: $e')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Center(
-          child: Text('Add Experience Form'),
-        ),
+        title: const Text('Add Experience Form'),
         backgroundColor: const Color(0xFF00674F),
         foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
       drawer: const LeftDrawer(),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  decoration: InputDecoration(
-                    hintText: "Role / Position",
-                    labelText: "Role / Position",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _title = value!;
-                    });
-                  },
-                  validator: (String? value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Enter a role or position.";
-                    }
-                    return null;
-                  },
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Role / Position',
+                  border: OutlineInputBorder(),
                 ),
+                onChanged: (value) => _title = value,
+                validator: (value) =>
+                    value == null || value.trim().isEmpty
+                        ? 'Enter a role or position.'
+                        : null,
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: TextFormField(
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: "What did you do?",
-                    labelText: "Description",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  onChanged: (String? value) {
-                    setState(() {
-                      _description = value!;
-                    });
-                  },
-                  validator: (String? value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Enter a description.";
-                    }
-                    return null;
-                  },
+              const SizedBox(height: 16),
+              TextFormField(
+                maxLines: 5,
+                decoration: const InputDecoration(
+                  labelText: 'Description',
+                  border: OutlineInputBorder(),
                 ),
+                onChanged: (value) => _description = value,
+                validator: (value) =>
+                    value == null || value.trim().isEmpty
+                        ? 'Enter a description.'
+                        : null,
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: DropdownButtonFormField<String>(
-                  decoration: InputDecoration(
-                    labelText: "Category",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                  ),
-                  initialValue: _category,
-                  items: _categories
-                      .map((category) => DropdownMenuItem(
-                            value: category,
-                            child: Text(category),
-                          ))
-                      .toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _category = newValue!;
-                    });
-                  },
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                initialValue: _category,
+                decoration: const InputDecoration(
+                  labelText: 'Category',
+                  border: OutlineInputBorder(),
                 ),
+                items: _categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() => _category = value!);
+                },
               ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(const Color(0xFF800000)),
-                    ),
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text('Experience Added!'),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Title: $_title'),
-                                  const SizedBox(height: 8),
-                                  Text('Category: $_category'),
-                                  const SizedBox(height: 8),
-                                  Text('Description: $_description'),
-                                ],
-                              ),
-                              actions: [
-                                TextButton(
-                                  child: const Text('OK'),
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                    _formKey.currentState!.reset();
-                                  },
-                                ),
-                              ],
-                            );
-                          },
-                        );
-                      }
-                    },
-                    child: const Text(
-                      "Save",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF800000),
+                  foregroundColor: Colors.white,
                 ),
+                onPressed: _isSubmitting ? null : _submit,
+                child: _isSubmitting
+                    ? const CircularProgressIndicator()
+                    : const Text('Save'),
               ),
             ],
           ),
